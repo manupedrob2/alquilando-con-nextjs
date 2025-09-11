@@ -3,6 +3,7 @@ using System;
 using AlquileresApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AlquileresApp.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250625045611_ModificacionDeAtributo")]
+    partial class ModificacionDeAtributo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.5");
@@ -43,6 +46,9 @@ namespace AlquileresApp.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("Activa")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -50,13 +56,7 @@ namespace AlquileresApp.Data.Migrations
                     b.Property<DateTime>("FechaFin")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("FechaFinReserva")
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("FechaInicio")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("FechaInicioReserva")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("PorcentajeDescuento")
@@ -86,9 +86,6 @@ namespace AlquileresApp.Data.Migrations
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("Destacada")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Direccion")
                         .IsRequired()
@@ -267,21 +264,6 @@ namespace AlquileresApp.Data.Migrations
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("PromocionPropiedad", b =>
-                {
-                    b.Property<int>("PromocionesId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("PropiedadesId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("PromocionesId", "PropiedadesId");
-
-                    b.HasIndex("PropiedadesId");
-
-                    b.ToTable("PromocionPropiedad");
-                });
-
             modelBuilder.Entity("AlquileresApp.Core.Entidades.Administrador", b =>
                 {
                     b.HasBaseType("AlquileresApp.Core.Entidades.Usuario");
@@ -338,21 +320,6 @@ namespace AlquileresApp.Data.Migrations
                     b.HasOne("AlquileresApp.Core.Entidades.Cliente", null)
                         .WithMany()
                         .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("PromocionPropiedad", b =>
-                {
-                    b.HasOne("AlquileresApp.Core.Entidades.Promocion", null)
-                        .WithMany()
-                        .HasForeignKey("PromocionesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AlquileresApp.Core.Entidades.Propiedad", null)
-                        .WithMany()
-                        .HasForeignKey("PropiedadesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

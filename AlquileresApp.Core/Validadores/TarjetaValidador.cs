@@ -1,7 +1,7 @@
 using AlquileresApp.Core.Interfaces;
 using AlquileresApp.Core.Entidades;
 
-namespace AlquileresApp.Core.Validadores;
+namespace AlquileresApp.Core;
 
 public class TarjetaValidador : ITarjetaValidador
 {

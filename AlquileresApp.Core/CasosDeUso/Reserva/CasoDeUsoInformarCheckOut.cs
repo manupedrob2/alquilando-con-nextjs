@@ -1,4 +1,4 @@
-namespace AlquileresApp.Core.CasosDeUso.Reserva;
+namespace AlquileresApp.Core.CasosDeUso.InformarCheckOut;
 using AlquileresApp.Core.Entidades;
 using AlquileresApp.Core.Enumerativos;
 using AlquileresApp.Core.Interfaces;

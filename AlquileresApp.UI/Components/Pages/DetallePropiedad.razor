@@ -1,4 +1,4 @@
-
+@page "/EditarPropiedad/{Id:int}"
 @using AlquileresApp.Core.CasosDeUso.Imagen
 @using AlquileresApp.Core.CasosDeUso.Propiedad
 @using AlquileresApp.Core.CasosDeUso.Reserva
@@ -7,10 +7,6 @@
 @using AlquileresApp.Core.Interfaces
 @using GoogleMaps.LocationServices
 @using Microsoft.JSInterop
-@using Microsoft.Extensions.Configuration
-@using Microsoft.AspNetCore.Components.Forms
-@using System.IO
-@using System.ComponentModel.DataAnnotations
 @inject IPropiedadRepositorio PropiedadesRepo
 @inject IImagenesRepositorio ImagenesRepo
 @inject NavigationManager NavigationManager
@@ -22,10 +18,12 @@
 @inject CasoDeUsoCrearReserva CUCrearReserva
 @inject CasoDeUsoObtenerPropiedad CUObtenerPropiedad
 @inject IWebHostEnvironment Environment
-@inject IJSRuntime Js
+@using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
-
-@page "/EditarPropiedad/{Id:int}"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.IO
+@using System.ComponentModel.DataAnnotations
+@inject IJSRuntime Js
 
 <link href="css/VerPropiedad.css" rel="stylesheet" />
 

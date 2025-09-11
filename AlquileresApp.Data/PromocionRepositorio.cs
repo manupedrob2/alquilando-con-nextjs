@@ -98,14 +98,11 @@ foreach (var propiedad in promocion.Propiedades)
         .Include(p => p.Propiedades) // 👈 Incluye las propiedades asociadas
         .FirstOrDefault(p => p.Id == id && !p.borrada);
 }
-public List<Promocion> ObtenerTodasActivas()
+  public List<Promocion> ObtenerTodasActivas()
 {
-    var hoyUtc = DateTime.UtcNow.Date; // UTC y sin parte de hora
-
     return dbContext.Promociones
-        .Include(p => p.Propiedades)
-        .Where(p => !p.borrada && p.FechaInicio <= hoyUtc && p.FechaFin >= hoyUtc)
+        .Include(p => p.Propiedades) // 👈 Incluye las propiedades asociadas
+        .Where(p => !p.borrada && p.FechaInicio <= DateTime.Today && p.FechaFin >= DateTime.Today)
         .ToList();
 }
-
 }

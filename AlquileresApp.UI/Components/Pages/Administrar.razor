@@ -1,4 +1,5 @@
-
+@page "/Administrar"
+@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using AlquileresApp.Core.Entidades
 @using AlquileresApp.Core.CasosDeUso.Propiedad
@@ -7,8 +8,7 @@
 @using AlquileresApp.Core.CasosDeUso.PreguntasFrecuentes
 @using AlquileresApp.Core.Enumerativos
 @using AlquileresApp.Core.Interfaces
-@page "/Administrar"
-@rendermode InteractiveServer
+
 @inject CasoDeUsoListarPropiedades CUListarPropiedades
 @inject CasoDeUsoEliminarPropiedad CUEliminarPropiedad
 @inject CasoDeUsoModificarPropiedad CUModificarPropiedad

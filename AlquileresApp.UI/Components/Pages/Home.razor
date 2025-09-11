@@ -1,23 +1,23 @@
+
+@page "/"
+@rendermode InteractiveServer
 @using AlquileresApp.Core.Entidades
 @using AlquileresApp.Core.CasosDeUso.Propiedad
 @using AlquileresApp.Core.CasosDeUso.Reserva
 @using AlquileresApp.Core.CasosDeUso.Calificacion
 @using AlquileresApp.Core.Enumerativos
 @using AlquileresApp.Core.CasosDeUso.Promocion
+@inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.Components.Forms
 @using System.IO
-@inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 @inject IWebHostEnvironment Environment
 @inject CasoDeUsoListarPropiedadesFiltrado CUListarPropiedadesFiltrado
 @inject CasoDeUsoCrearReserva CUReservarPropiedad
 @inject CasoDeUsoListarPromocionesActivas CUListarPromocionesActivas
 @inject CasoDeUsoListarPropiedadesDestacadas CUListarPropiedadesDestacadas
+
 @inject CasoDeUsoMostrarCalificacion CUMostrarCalificacion
-
-
-@page "/"
-@rendermode InteractiveServer
 
 <link href="css/Filtradas.css" rel="stylesheet" />
 @if (Promociones != null && Promociones.Any())

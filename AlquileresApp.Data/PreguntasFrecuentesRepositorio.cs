@@ -1,11 +1,10 @@
-namespace AlquileresApp.Data;
 using AlquileresApp.Core.Entidades;
 using AlquileresApp.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using AlquileresApp.Data;
 using System.IO;
 
-public class PreguntasFrecuentesRepositorio(AppDbContext dbContext) : IPreguntasFrecuentesRepositorio
+public class PreguntaFrecuenteRepositorio(AppDbContext dbContext) : IPreguntasFrecuentesRepositorio
 {
     public PreguntaFrecuente CrearPreguntaFrecuente(string pregunta, string respuesta)
     {

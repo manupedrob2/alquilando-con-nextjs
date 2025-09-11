@@ -3,18 +3,15 @@
 @using AlquileresApp.Core.Entidades
 @using AlquileresApp.Core.Enumerativos
 @using AlquileresApp.Core.Interfaces
-@using AlquileresApp.Core.Servicios
-@using Microsoft.AspNetCore.Authorization
 @using AlquileresApp.Core.CasosDeUso.Reserva
-@using Microsoft.AspNetCore.Components.Authorization
-@using System.Security.Claims
-
 @inject CasoDeUsoModificarReserva CasoDeUsoModificarReserva
 @inject CasoDeUsoObtenerReserva CasoDeUsoObtenerReserva
 @inject NavigationManager NavigationManager
-
+@using AlquileresApp.Core.Servicios
+@using Microsoft.AspNetCore.Authorization
 @inject AuthenticationStateProvider ServicioAutenticacion
-
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 
 <link href="css/ModificarReserva.css" rel="stylesheet" />
 
