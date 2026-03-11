@@ -13,7 +13,8 @@ public class CasoDeUsoIniciarSesion(IUsuarioRepositorio usuarioRepositorio, ISer
         var usuarioAutenticado = usuarioRepositorio.AutenticarUsuario(correo, hashedPassword);
         if (usuarioAutenticado == null)
             throw new Exception("Correo no registrado o contraseña incorrecta");
-        await servicioAutenticacion.Autenticar(usuarioAutenticado);
+        
+        // await servicioAutenticacion.Autenticar(usuarioAutenticado); // Comentado para API REST
         return usuarioAutenticado;
     }
 }

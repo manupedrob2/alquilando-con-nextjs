@@ -1,6 +1,7 @@
 using AlquileresApp.UI.Components;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using AlquileresApp.Data;
 using AlquileresApp.Core.CasosDeUso.Usuario;
 using AlquileresApp.Core.CasosDeUso.Administrador;
@@ -22,6 +23,8 @@ using AlquileresApp.Core.CasosDeUso.Promocion;
 
 using AlquileresApp.Core.CasosDeUso.PreguntasFrecuentes;
 using AlquileresApp.Core.CasosDeUso.ContactarAdmin;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,15 +53,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Configure HTTPS
 builder.WebHost.UseUrls("https://localhost:7234", "http://localhost:5234");
 
-// Configurar autenticación
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+// Configurar autenticación JWT
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        options.LoginPath = "/Login";
-        options.LogoutPath = "/Logout";
-        options.AccessDeniedPath = "/AccessDenied";
-        options.ExpireTimeSpan = TimeSpan.FromHours(1);
-        options.SlidingExpiration = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -148,6 +157,19 @@ builder.Services.AddScoped<CasoDeUsoEliminarPreguntaFrecuente>();
 builder.Services.AddScoped<CasoDeUsoContactarAdmin>();
 builder.Services.AddResponseCompression();
 
+// Configurar CORS para NextJS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("NextJS", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials()
+              .SetIsOriginAllowed(host => true); // Permitir cualquier origen en desarrollo
+    });
+});
+
 var app = builder.Build();
 app.UseResponseCompression();
 // Initialize Database and Seed Data
@@ -213,13 +235,16 @@ else
     app.UseDeveloperExceptionPage();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Desactivado para desarrollo con Next.js
 
 // Configuración de archivos estáticos
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Usar CORS antes de autenticación y autorización
+app.UseCors("NextJS");
 
 app.UseAuthentication();
 app.UseAuthorization();
