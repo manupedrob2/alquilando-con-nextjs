@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # Base de datos SQLite persistente
+  db-data:
+    image: busybox
+    volumes:
+      - db_data:/data
+
+  # Backend .NET API
+  backend:
+    build:
+      context: .
+      dockerfile: AlquileresApp.UI/Dockerfile.dev
+    container_name: alquilando-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5234
+    volumes:
+      - db_data:/app/data
+      - ./AlquileresApp.UI:/app/AlquileresApp.UI
+      - ./AlquileresApp.Core:/app/AlquileresApp.Core
+      - ./AlquileresApp.Data:/app/AlquileresApp.Data
+    depends_on:
+      - db-data
+    networks:
+      - alquilando-network
+    restart: unless-stopped
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ./alquileres-frontend
+      dockerfile: Dockerfile.dev
+    container_name: alquilando-frontend
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3001/api  # Acceso a través de Nginx
+    depends_on:
+      - backend
+      - nginx
+    networks:
+      - alquilando-network
+    restart: unless-stopped
+    volumes:
+      - ./alquileres-frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: alquilando-nginx
+    ports:
+      - "3001:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - alquilando-network
+    restart: unless-stopped
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  alquilando-network:
+    driver: bridge

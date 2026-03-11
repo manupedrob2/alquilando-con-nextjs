@@ -1,0 +1,10 @@
+# Frontend .dockerignore
+node_modules/
+.next/
+out/
+.git
+.gitignore
+README.md
+Dockerfile
+Dockerfile*
+.dockerignore

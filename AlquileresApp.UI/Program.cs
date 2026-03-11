@@ -50,9 +50,6 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure HTTPS
-builder.WebHost.UseUrls("https://localhost:7234", "http://localhost:5234");
-
 // Configurar autenticación JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -162,11 +159,18 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("NextJS", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials()
-              .SetIsOriginAllowed(host => true); // Permitir cualquier origen en desarrollo
+        // Orígenes permitidos (específicos y seguros)
+        policy.WithOrigins(
+                "http://localhost:3000", 
+                "http://localhost:3001",
+                "http://127.0.0.1:3000", 
+                "http://127.0.0.1:3001",
+                "http://frontend:3000",           // Comunicación interna Docker
+                "http://alquilando-frontend:3000"  // Nombre del contenedor
+              )
+              .AllowAnyMethod()                    // Permitir todos los métodos HTTP
+              .AllowAnyHeader()                    // Permitir todos los headers
+              .AllowCredentials();                 // Permitir credenciales (cookies/tokens)
     });
 });
 

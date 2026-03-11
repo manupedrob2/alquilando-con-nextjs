@@ -1,0 +1,19 @@
+# .dockerignore para backend
+bin/
+obj/
+out/
+.vs/
+.vscode/
+UserSecrets/
+*.md
+Dockerfile
+Dockerfile.*
+.dockerignore
+Properties/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Keep database files
+!*.db

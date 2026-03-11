@@ -18,13 +18,48 @@ Proyecto completo de alquileres con backend en .NET Core y frontend en Next.js.
 
 ## 🚀 Cómo ejecutar el proyecto
 
-### Backend
+### Opción 1: Docker (Recomendado) 🐳
+
+#### Modo Desarrollo (con hot-reload)
+```bash
+# Usar el script automatizado
+./start.sh dev
+
+# O manualmente
+docker-compose -f docker-compose.dev.yml up --build -d
+```
+
+#### Modo Producción
+```bash
+# Usar el script automatizado
+./start.sh prod
+
+# O manualmente
+docker-compose up --build -d
+```
+
+#### Comandos Útiles
+```bash
+./start.sh down    # Detener todo
+./start.sh logs    # Ver logs
+./start.sh clean   # Limpiar Docker
+./start.sh help    # Ver ayuda
+```
+
+### 🔗 URLs de Acceso
+- **Frontend:** http://localhost:3001
+- **Backend:** http://localhost:5234
+- **API Documentation:** http://localhost:5234/api
+
+### Opción 2: Local (Manual) 💻
+
+#### Backend
 ```bash
 cd AlquileresApp.UI
 dotnet run --urls="http://localhost:5234"
 ```
 
-### Frontend
+#### Frontend
 ```bash
 cd alquileres-frontend
 npm install

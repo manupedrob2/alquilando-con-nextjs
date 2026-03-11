@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Base de datos SQLite persistente
+  db-data:
+    image: busybox
+    volumes:
+      - db_data:/data
+
+  # Backend .NET API
+  backend:
+    build:
+      context: .
+      dockerfile: AlquileresApp.UI/Dockerfile
+    container_name: alquilando-backend
+    ports:
+      - "5234:5234"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5234
+    volumes:
+      - db_data:/app/data
+    depends_on:
+      - db-data
+    networks:
+      - alquilando-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/api/propiedades"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ./alquileres-frontend
+      dockerfile: Dockerfile
+    container_name: alquilando-frontend
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:5234/api  # Para acceso desde navegador
+      - INTERNAL_API_URL=http://backend:5234/api  # Para comunicación interna Docker
+    depends_on:
+      - backend
+    networks:
+      - alquilando-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  alquilando-network:
+    driver: bridge

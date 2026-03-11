@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # Base de datos SQLite persistente
+  db-data:
+    image: busybox
+    volumes:
+      - db_data:/data
+
+  # Backend .NET API
+  backend:
+    build:
+      context: .
+      dockerfile: AlquileresApp.UI/Dockerfile.dev
+    container_name: alquilando-backend
+    ports:
+      - "5234:5234"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5234  # Solo HTTP
+    volumes:
+      - db_data:/app/data
+      # Montar el código fuente para desarrollo en caliente
+      - ./AlquileresApp.UI:/app/AlquileresApp.UI
+      - ./AlquileresApp.Core:/app/AlquileresApp.Core
+      - ./AlquileresApp.Data:/app/AlquileresApp.Data
+    depends_on:
+      - db-data
+    networks:
+      - alquilando-network
+    restart: unless-stopped
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ./alquileres-frontend
+      dockerfile: Dockerfile.dev
+    container_name: alquilando-frontend
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=/api  # Usar proxy interno
+    depends_on:
+      - backend
+    networks:
+      - alquilando-network
+    restart: unless-stopped
+    volumes:
+      # Montar el código fuente para desarrollo en caliente
+      - ./alquileres-frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  alquilando-network:
+    driver: bridge
