@@ -1,264 +1,351 @@
-'use client';
+import React, { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
-import { useState, useEffect } from 'react';
-import { apiService, Propiedad, Promocion } from '@/lib/apiService';
-import Link from 'next/link';
+interface Property {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  localidad: string;
+  direccion: string;
+  capacidad: number;
+  precioPorNoche: number;
+  imagenes?: { id: number; url: string }[];
+  serviciosDisponibles?: string[];
+  politicasCancelacion?: string;
+  calificacionPromedio?: number;
+}
+
+interface SearchFilters {
+  localidad: string;
+  cantidadHuespedes: number;
+  fechaInicio: string;
+  fechaFin: string;
+}
 
 export default function HomePage() {
-  const [propiedadesDestacadas, setPropiedadesDestacadas] = useState<Propiedad[]>([]);
-  const [promocionesActivas, setPromocionesActivas] = useState<Promocion[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [featuredProperties, setFeaturedProperties] = useState<Property[]>([]);
+  const [promotions, setPromotions] = useState<any[]>([]);
+  const [filters, setFilters] = useState<SearchFilters>({
+    localidad: '',
+    cantidadHuespedes: 1,
+    fechaInicio: '',
+    fechaFin: ''
+  });
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [propiedades, promociones] = await Promise.all([
-          apiService.getPropiedadesDestacadas(),
-          apiService.getPromocionesActivas()
-        ]);
-        
-        setPropiedadesDestacadas(propiedades);
-        setPromocionesActivas(promociones);
-      } catch (error) {
-        console.error('Error al cargar datos:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
+    loadFeaturedProperties();
+    loadPromotions();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Cargando...</div>
-      </div>
-    );
-  }
+  const loadFeaturedProperties = async () => {
+    try {
+      const response = await fetch(`${api.endpoints.propiedades.destacadas}`);
+      const data = await response.json();
+      setFeaturedProperties(data);
+    } catch (error) {
+      console.error('Error loading featured properties:', error);
+    }
+  };
+
+  const loadPromotions = async () => {
+    try {
+      const response = await fetch(`${api.endpoints.promociones.activas}`);
+      const data = await response.json();
+      setPromotions(data);
+    } catch (error) {
+      console.error('Error loading promotions:', error);
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.localidad) queryParams.append('localidad', filters.localidad);
+      if (filters.cantidadHuespedes) queryParams.append('cantidadHuespedes', filters.cantidadHuespedes.toString());
+      if (filters.fechaInicio) queryParams.append('fechaInicio', filters.fechaInicio);
+      if (filters.fechaFin) queryParams.append('fechaFin', filters.fechaFin);
+      
+      const response = await fetch(`${api.endpoints.propiedades.filtrar}?${queryParams}`);
+      const data = await response.json();
+      setProperties(data);
+    } catch (error) {
+      console.error('Error searching properties:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, index) => (
+      <span key={index} className={index < rating ? 'text-warning' : 'text-muted'}>
+        ★
+      </span>
+    ));
+  };
+
+  const getPolicyDescription = (policy: string) => {
+    switch (policy) {
+      case 'Anticipo20_72hs':
+        return 'Requiere 20% de anticipo y permite cancelación hasta 72hs antes.';
+      case 'SinAnticipo_NoCancelable':
+        return 'No requiere anticipo, pero no permite cancelaciones.';
+      case 'PagoTotal_48hs_50':
+        return 'Pago total por adelantado, permite cancelación hasta 48hs antes con 50% de reintegro.';
+      default:
+        return 'No especificada.';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="text-center">
-            <h1 className="text-4xl font-extrabold sm:text-5xl md:text-6xl">
-              Encuentra tu Alquiler Ideal
-            </h1>
-            <p className="mt-3 max-w-md mx-auto text-base sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-              Las mejores propiedades para tus vacaciones o estadías largas. 
-              Calidad garantizada y atención personalizada.
-            </p>
-            <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
-              <div className="rounded-md shadow">
-                <Link
-                  href="/propiedades"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-white text-blue-600 hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
-                >
-                  Explorar Propiedades
-                </Link>
-              </div>
-              <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
-                <Link
-                  href="/register"
-                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
-                >
-                  Registrarse
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Propiedades Destacadas */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            Propiedades Destacadas
-          </h2>
-          <p className="mt-4 text-lg text-gray-600">
-            Las opciones más populares y recomendadas por nuestros clientes
-          </p>
-        </div>
-
-        <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {propiedadesDestacadas.map((propiedad) => (
-            <div key={propiedad.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div className="relative">
-                {propiedad.imagenes.length > 0 ? (
-                  <img
-                    src={`http://localhost:5234${propiedad.imagenes[0]}`}
-                    alt={propiedad.titulo}
-                    className="w-full h-48 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-400">Sin imagen</span>
-                  </div>
-                )}
-                <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-sm">
-                  Destacado
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-gray-900">{propiedad.titulo}</h3>
-                <p className="mt-2 text-gray-600">{propiedad.descripcion}</p>
+    <div className="container mt-4">
+      {/* Promotions Carousel */}
+      {promotions.length > 0 && (
+        <section className="mb-5">
+          <h2 className="text-center mb-4">Promociones Especiales</h2>
+          <div id="carouselPromociones" className="carousel slide" data-bs-ride="carousel">
+            <div className="carousel-inner text-center text-white">
+              {promotions.map((promo, index) => {
+                const isActive = index === 0 ? 'active' : '';
+                const bgClass = index % 3 === 0 ? 'bg-primary' : index % 3 === 1 ? 'bg-success' : 'bg-warning';
                 
-                <div className="mt-4 flex items-center justify-between">
-                  <div>
-                    <span className="text-2xl font-bold text-blue-600">
-                      ${propiedad.precio}
-                    </span>
-                    <span className="text-gray-500 ml-1">/noche</span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    <span>{propiedad.capacidad}</span> huéspedes
-                  </div>
-                </div>
-                
-                <div className="mt-4 flex items-center text-sm text-gray-500">
-                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
-                  {propiedad.localidad}
-                </div>
-                
-                <div className="mt-4">
-                  <Link
-                    href={`/propiedades/${propiedad.id}`}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-center block"
-                  >
-                    Ver Detalles
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {propiedadesDestacadas.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No hay propiedades destacadas disponibles en este momento.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Promociones Activas */}
-      {promocionesActivas.length > 0 && (
-        <div className="bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="text-center">
-              <h2 className="text-3xl font-extrabold text-gray-900">
-                Ofertas Especiales
-              </h2>
-              <p className="mt-4 text-lg text-gray-600">
-                Aprovecha nuestras promociones exclusivas
-              </p>
-            </div>
-
-            <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {promocionesActivas.map((promocion) => (
-                <div key={promocion.id} className="bg-gradient-to-br from-red-50 to-pink-50 rounded-lg shadow-lg overflow-hidden border border-red-200">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-semibold text-gray-900">{promocion.titulo}</h3>
-                      <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                        -{promocion.porcentajeDescuento}%
-                      </div>
+                return (
+                  <div key={promo.id} className={`carousel-item p-5 rounded shadow-lg ${bgClass}`}>
+                    <h3 className="mb-3 display-6 fw-bold">{promo.titulo}</h3>
+                    <p className="lead">{promo.descripcion}</p>
+                    <h4 className="display-6 fw-bold mb-4">{promo.porcentajeDescuento}% OFF</h4>
+                    
+                    <div className="row justify-content-center">
+                      {promo.propiedades && promo.propiedades.slice(0, 3).map((prop: any, propIndex: number) => (
+                        <div key={propIndex} className="col-md-3 mb-3">
+                          <div className="card text-dark bg-light h-100 shadow-sm">
+                            <div className="card-body">
+                              <h5 className="card-title">{prop.titulo}</h5>
+                              <p className="card-text">{prop.localidad}</p>
+                              <p className="card-text text-muted">
+                                <del>${prop.precioPorNoche}</del>
+                                <strong>${prop.precioPorNoche * (1 - promo.porcentajeDescuento / 100)}</strong> por noche con descuento
+                              </p>
+                              <a href={`/propiedad/${prop.id}`} className="btn btn-sm btn-primary">Ver más</a>
+                            </div>
+                          </div>
+                        ))}
                     </div>
                     
-                    <p className="mt-2 text-gray-600">{promocion.descripcion}</p>
-                    
-                    <div className="mt-4 text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                        </svg>
-                        Válida hasta: {new Date(promocion.fechaFin).toLocaleDateString()}
-                      </div>
-                    </div>
-                    
-                    {promocion.propiedades && promocion.propiedades.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700">Aplica en:</p>
-                        <div className="mt-2 space-y-1">
-                          {promocion.propiedades.slice(0, 2).map((prop) => (
-                            <div key={prop.id} className="text-sm text-gray-600">
-                              • {prop.titulo}
-                              {prop.precioConDescuento && (
-                                <span className="ml-2 text-green-600 font-medium">
-                                  ${prop.precioConDescuento}/noche
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                          {promocion.propiedades.length > 2 && (
-                            <div className="text-sm text-gray-500">
-                              y {promocion.propiedades.length - 2} más...
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                    {promo.propiedades && promo.propiedades.length > 3 && (
+                      <button 
+                        className="btn btn-link text-white" 
+                        data-bs-toggle="modal" 
+                        data-bs-target={`#modalPropiedadesPromo_${promo.id}`}
+                      >
+                        Ver todas las propiedades ({promo.propiedades.length})
+                      </button>
                     )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+            
+            <button className="carousel-control-prev" type="button" data-bs-target="#carouselPromociones" data-bs-slide="prev">
+              <span className="carousel-control-prev-icon"></span>
+              <span className="visually-hidden">Anterior</span>
+            </button>
+            <button className="carousel-control-next" type="button" data-bs-target="#carouselPromociones" data-bs-slide="next">
+              <span className="carousel-control-next-icon"></span>
+              <span className="visually-hidden">Siguiente</span>
+            </button>
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Features Section */}
-      <div className="bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900">
-              ¿Por qué elegirnos?
-            </h2>
-          </div>
-          
-          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="text-center">
-              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white mx-auto">
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">Calidad Garantizada</h3>
-              <p className="mt-2 text-gray-600">
-                Todas nuestras propiedades son verificadas y cumplen con los más altos estándares de calidad.
-              </p>
+      {/* Search Section */}
+      <section className="container_listar_propiedades mt-5">
+        <h2 className="tituloo">Busca tu lugar ideal</h2>
+        
+        <form onSubmit={handleSearch} className="mb-4">
+          <div className="filtros">
+            <div>
+              <label>Ubicación:</label>
+              <input
+                type="text"
+                className="form-control"
+                value={filters.localidad}
+                onChange={(e) => setFilters({...filters, localidad: e.target.value})}
+              />
             </div>
             
-            <div className="text-center">
-              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white mx-auto">
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">Precios Justos</h3>
-              <p className="mt-2 text-gray-600">
-                Las mejores tarifas del mercado sin cargos ocultos ni comisiones adicionales.
-              </p>
+            <div>
+              <label>Cantidad de personas:</label>
+              <input
+                type="number"
+                className="form-control"
+                value={filters.cantidadHuespedes}
+                onChange={(e) => setFilters({...filters, cantidadHuespedes: parseInt(e.target.value) || 1})}
+              />
             </div>
             
-            <div className="text-center">
-              <div className="flex items-center justify-center h-12 w-12 rounded-md bg-blue-500 text-white mx-auto">
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">Soporte 24/7</h3>
-              <p className="mt-2 text-gray-600">
-                Atención personalizada durante toda tu estadía, estamos aquí para ayudarte en cualquier momento.
-              </p>
+            <div>
+              <label>Fecha de inicio:</label>
+              <input
+                type="date"
+                className="form-control"
+                value={filters.fechaInicio}
+                onChange={(e) => setFilters({...filters, fechaInicio: e.target.value})}
+              />
             </div>
+            
+            <div>
+              <label>Fecha de fin:</label>
+              <input
+                type="date"
+                className="form-control"
+                value={filters.fechaFin}
+                onChange={(e) => setFilters({...filters, fechaFin: e.target.value})}
+              />
+            </div>
+            
+            <button type="submit" className="btn btn-filtrar">Buscar</button>
           </div>
+        </form>
+      </section>
+
+      {/* Featured Properties */}
+      {featuredProperties.length > 0 && (
+        <section className="container mt-5">
+          <h3 className="mb-3 text-center">Propiedades destacadas</h3>
+          <div id="carouselDestacadas" className="carousel slide" data-bs-ride="carousel">
+            <div className="carousel-inner">
+              {featuredProperties.map((property, index) => {
+                const isActive = index === 0 ? 'active' : '';
+                
+                return (
+                  <div key={property.id} className={`carousel-item ${isActive}`}>
+                    <div className="row justify-content-center">
+                      <div className="col-md-4 mb-3">
+                        <div className="card h-100">
+                          {property.imagenes && property.imagenes.length > 0 ? (
+                            <img 
+                              src={property.imagenes[0].url} 
+                              className="card-img-top" 
+                              alt="Imagen destacada" 
+                              style={{ height: '180px', objectFit: 'cover' }} 
+                            />
+                          ) : (
+                            <img 
+                              src="/imagenes/propiedades/iconoimagen.jpg" 
+                              className="card-img-top" 
+                              alt="Sin imagen" 
+                              style={{ height: '180px', objectFit: 'cover' }} 
+                            />
+                          )}
+                          
+                          <div className="card-body">
+                            <h5 className="card-title">{property.titulo}</h5>
+                            <p className="card-text">{property.descripcion}</p>
+                            <a href={`/propiedad/${property.id}`} className="btn btn-sm btn-primary">Ver más</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <button className="carousel-control-prev" type="button" data-bs-target="#carouselDestacadas" data-bs-slide="prev">
+              <span className="carousel-control-prev-icon"></span>
+              <span className="visually-hidden">Anterior</span>
+            </button>
+            <button className="carousel-control-next" type="button" data-bs-target="#carouselDestacadas" data-bs-slide="next">
+              <span className="carousel-control-next-icon"></span>
+              <span className="visually-hidden">Siguiente</span>
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Search Results */}
+      {!loading && properties.length === 0 && (
+        <div className="text-center">
+          <p>No hay propiedades que cumplan con los requisitos disponibles.</p>
         </div>
-      </div>
+      )}
+      
+      {properties.length > 0 && (
+        <section className="container_listar_propiedades">
+          <ul className="lista-propiedades">
+            {properties.map((property) => {
+              const carouselId = `carousel-${property.id}`;
+              
+              return (
+                <li key={property.id} className="propiedad-item">
+                  <h3>{property.titulo}</h3>
+                  
+                  {/* Image Carousel */}
+                  <div id={carouselId} className="carousel slide propiedad-carousel" data-bs-ride="carousel">
+                    <div className="carousel-inner">
+                      {property.imagenes && property.imagenes.map((imagen, index) => (
+                        <div key={imagen.id} className={`carousel-item ${index === 0 ? 'active' : ''}`}>
+                          <img 
+                            src={imagen.url} 
+                            className="d-block w-100 propiedad-img" 
+                            alt={`Imagen de ${property.titulo}`} 
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {property.imagenes && property.imagenes.length > 1 && (
+                      <button className="carousel-control-prev" type="button" data-bs-target={`#${carouselId}`} data-bs-slide="prev">
+                        <span className="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span className="visually-hidden">Anterior</span>
+                      </button>
+                    )}
+                    {property.imagenes && property.imagenes.length > 1 && (
+                      <button className="carousel-control-next" type="button" data-bs-target={`#${carouselId}`} data-bs-slide="next">
+                        <span className="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span className="visually-hidden">Siguiente</span>
+                      </button>
+                    )}
+                  </div>
+                  
+                  <p>{property.descripcion}</p>
+                  <p><strong>Dirección:</strong> {property.direccion}</p>
+                  <p><strong>Localidad:</strong> {property.localidad}</p>
+                  <p><strong>Capacidad:</strong> {property.capacidad} personas</p>
+                  <p><strong>Precio por noche:</strong> ${property.precioPorNoche}</p>
+                  
+                  <div className="calificacion-promedio">
+                    <strong>Calificación Promedio:</strong>
+                    {property.calificacionPromedio && property.calificacionPromedio > 0 ? (
+                      <>
+                        <span style={{ color: '#FFD700' }}>★</span>
+                        <span> Una sola estrella dorada </span>
+                        <span>{property.calificacionPromedio.toFixed(1)}</span>
+                        <span> El número al lado (ej. 4.5)</span>
+                      </>
+                    ) : (
+                      <span>sin calificaciones aún</span>
+                    )}
+                  </div>
+                  
+                  <div className="info-grupo">
+                    <button className="btn btn-primary" onClick={() => window.location.href = `/reservar/${property.id}`}>
+                      <i className="fas fa-calendar-check"></i> Reservar esta propiedad
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

@@ -1,10 +1,10 @@
 # Backend Dockerfile
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 5234
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["AlquileresApp.UI/AlquileresApp.UI.csproj", "AlquileresApp.UI/"]
 COPY ["AlquileresApp.Core/AlquileresApp.Core.csproj", "AlquileresApp.Core/"]
@@ -27,6 +27,6 @@ RUN chmod 777 /app/data
 
 # Variables de entorno
 ENV ASPNETCORE_URLS=http://+:5234
-ENV ASPNETCORE_ENVIRONMENT=Development
+ENV ASPNETCORE_ENVIRONMENT=Production
 
 ENTRYPOINT ["dotnet", "AlquileresApp.UI.dll"]
